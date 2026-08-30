@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { useCart } from '@/components/shared/CartProvider';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -19,6 +20,7 @@ export default function ProductsPage() {
     id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '' 
   });
   const [userRole, setUserRole] = useState('USER');
+  const { addToCart } = useCart();
 
   const fetchData = async () => {
     try {
@@ -98,20 +100,26 @@ export default function ProductsPage() {
         {row.isActive ? 'Activo' : 'Inactivo'}
       </Badge>
     )},
+    { key: 'cart', header: '', render: (row) => (
+      <Button 
+        size="sm" 
+        variant="outline" 
+        onClick={() => addToCart({ productId: row.id, name: row.name, price: row.price, quantity: 1 })}
+      >
+        Añadir al carrito
+      </Button>
+    )},
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Productos</h1>
-        <div className="space-x-3">
-          <Button variant="outline">Importar Productos</Button>
-          {userRole === 'ADMIN' && (
-            <Button onClick={() => { setFormData({ id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '' }); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              + Nuevo Producto
-            </Button>
-          )}
-        </div>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Productos</h1>
+        {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') && (
+          <Button onClick={() => { setFormData({ id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '' }); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            + Nuevo Producto
+          </Button>
+        )}
       </div>
 
       <div className="bg-white p-4 rounded-xl shadow-sm border">
@@ -124,8 +132,8 @@ export default function ProductsPage() {
         <GenericTable 
           columns={columns} 
           data={products} 
-          onEdit={userRole === 'ADMIN' ? handleEdit : undefined} 
-          onDelete={userRole === 'ADMIN' ? handleDelete : undefined} 
+          onEdit={(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? handleEdit : undefined} 
+          onDelete={(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? handleDelete : undefined} 
         />
       </div>
 

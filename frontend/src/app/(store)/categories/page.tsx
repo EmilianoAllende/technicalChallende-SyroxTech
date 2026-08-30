@@ -93,8 +93,8 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Categorías</h1>
-        {userRole === 'ADMIN' && (
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Categorías</h1>
+        {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') && (
           <Button onClick={() => { setFormData({ id: null, name: '', position: 1, parentId: '' }); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             + Nueva Categoría
           </Button>
@@ -108,8 +108,8 @@ export default function CategoriesPage() {
         <GenericTable 
           columns={columns} 
           data={categories} 
-          onEdit={userRole === 'ADMIN' ? handleEdit : undefined} 
-          onDelete={userRole === 'ADMIN' ? handleDelete : undefined} 
+          onEdit={(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? handleEdit : undefined} 
+          onDelete={(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? handleDelete : undefined} 
         />
       </div>
 

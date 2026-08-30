@@ -6,23 +6,29 @@ import { randomUUID } from 'crypto';
 export class SalesService {
   constructor(private prisma: PrismaService) {}
 
-  create() {
-    // Generar una venta aleatoria para simular el botón "Generar Venta"
+  async create(data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number }[] }) {
     const orderNumber = randomUUID().split('-')[0].toUpperCase();
-    const statuses = ['En Preparación', 'Enviado', 'Cancelado'];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const total = Math.floor(Math.random() * (5000 - 100 + 1) + 100);
-    const paymentStatuses = ['Pagado', 'Fallido'];
-    const paymentStatus = paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)];
+    const status = 'En Preparación';
+    const paymentStatus = 'Pagado';
+    
+    const total = data.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
     return this.prisma.sale.create({
       data: {
-        clientName: 'Cliente Simulado',
-        clientEmail: 'cliente@simulado.com',
+        clientName: data.clientName,
+        clientEmail: data.clientEmail,
+        userId: data.userId || null,
         orderNumber,
         status,
         total,
         paymentStatus,
+        items: {
+          create: data.items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        },
       },
     });
   }
@@ -36,6 +42,15 @@ export class SalesService {
   findOne(id: number) {
     return this.prisma.sale.findUnique({
       where: { id },
+      include: { items: { include: { product: true } } }
+    });
+  }
+
+  findMyPurchases(userId: number) {
+    return this.prisma.sale.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: { items: { include: { product: true } } }
     });
   }
 }

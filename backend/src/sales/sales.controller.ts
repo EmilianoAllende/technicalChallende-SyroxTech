@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { SalesService } from './sales.service';
 
 @Controller('sales')
@@ -6,8 +6,14 @@ export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
   @Post()
-  create() {
-    return this.salesService.create();
+  create(@Body() data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number }[] }) {
+    return this.salesService.create(data);
+  }
+
+  @Get('my-purchases')
+  findMyPurchases(@Query('userId') userId: string) {
+    if (!userId) return [];
+    return this.salesService.findMyPurchases(+userId);
   }
 
   @Get()

@@ -21,7 +21,7 @@ export default function LoginPage() {
       if (res.data.access_token) {
         localStorage.setItem('token', res.data.access_token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
-        router.push('/admin');
+        router.push('/');
       }
     } catch (err) {
       setError('Credenciales inválidas o error de conexión');

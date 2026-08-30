@@ -14,6 +14,7 @@ datasource db {
 enum Role {
   ADMIN
   USER
+  SUPERADMIN
 }
 
 model User {
@@ -21,6 +22,7 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(USER)
+  sales     Sale[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -47,18 +49,36 @@ model Product {
   isActive    Boolean  @default(true)
   categoryId  Int
   category    Category @relation(fields: [categoryId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  saleItems   SaleItem[]
 }
 
 model Sale {
-  id            Int      @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   clientName    String
   clientEmail   String
-  orderNumber   String   @unique
-  status        String   @default("En Preparación")
-  total         Float    @default(0.0)
-  paymentStatus String   @default("Pagado")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  orderNumber   String      @unique
+  status        String      @default("En Preparación")
+  total         Float       @default(0.0)
+  paymentStatus String      @default("Pagado")
+  
+  userId        Int?
+  user          User?       @relation(fields: [userId], references: [id])
+  items         SaleItem[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model SaleItem {
+  id        Int      @id @default(autoincrement())
+  saleId    Int
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

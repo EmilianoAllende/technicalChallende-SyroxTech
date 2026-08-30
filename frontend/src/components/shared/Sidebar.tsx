@@ -1,37 +1,74 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, Tags, Package, Users, BarChart3, Settings, HelpCircle, Bell, Sun, Moon, UserCircle } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Tags, Package, Users, BarChart3, Settings, HelpCircle, Bell, Sun, Moon, UserCircle, LogOut, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { api } from '@/lib/api';
 
-const sidebarItems = [
-  { name: 'Inicio', href: '/admin', icon: LayoutDashboard },
-  { name: 'Ventas', href: '/admin/sales', icon: ShoppingCart },
-  { name: 'Categorías', href: '/admin/categories', icon: Tags },
-  { name: 'Marcas', href: '/admin/brands', icon: Tags },
-  { name: 'Productos', href: '/admin/products', icon: Package },
-  { name: 'Clientes', href: '/admin/clients', icon: Users },
-  { name: 'Estadísticas', href: '/admin/stats', icon: BarChart3 },
+const baseItems = [
+  { name: 'Inicio', href: '/', icon: LayoutDashboard },
+  { name: 'Categorías', href: '/categories', icon: Tags },
+  { name: 'Marcas', href: '/brands', icon: Tags },
+  { name: 'Productos', href: '/products', icon: Package },
+  { name: 'Carrito', href: '/cart', icon: ShoppingCart },
 ];
 
 const bottomItems = [
-  { name: 'Configuración', href: '/admin/settings', icon: Settings },
-  { name: 'Ayuda', href: '/admin/help', icon: HelpCircle },
+  { name: 'Configuración', href: '/settings', icon: Settings },
+  { name: 'Ayuda', href: '/help', icon: HelpCircle },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [userRole, setUserRole] = React.useState<string | null>(null);
+  const { theme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserRole(user.role);
+      } catch (e) {}
+    }
+  }, []);
+
+  const items = [...baseItems];
+  if (userRole) {
+    items.push({ name: 'Mis Compras', href: '/my-purchases', icon: Package });
+  }
+  if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
+    items.push({ name: 'Ventas', href: '/sales', icon: ShoppingCart });
+    items.push({ name: 'Estadísticas', href: '/stats', icon: BarChart3 });
+  }
+  if (userRole === 'SUPERADMIN') {
+    items.push({ name: 'Usuarios', href: '/users', icon: Users });
+  }
 
   return (
     <aside className="w-64 h-screen bg-card border-r border-border flex flex-col fixed left-0 top-0">
       <div className="h-16 flex items-center px-6 border-b border-border space-x-3">
-        <img src="/astra_logo.jfif" alt="ASTRA Logo" className="w-8 h-8 object-cover rounded-full" />
-        <h1 className="font-bold text-xl text-primary tracking-wider">ASTRA</h1>
+        {mounted ? (
+          <img 
+            src={theme === 'dark' ? '/astra_logo_light.png' : '/astra_logo_dark.png'} 
+            alt="ASTRA Logo" 
+            className="w-auto h-8 object-contain" 
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
+        )}
       </div>
       
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="space-y-1 px-3">
-          {sidebarItems.map((item) => {
+          {items.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
@@ -69,13 +106,73 @@ export function Sidebar() {
 
 export function Header() {
   const pathname = usePathname();
-  
-  // Generar un breadcrumb simple
-  const paths = pathname.split('/').filter(p => p !== '');
-  const breadcrumb = paths.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' / ');
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<string | null>(null);
+  
+  React.useEffect(() => {
+    setMounted(true);
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserRole(user.role);
+      } catch (e) {}
+    }
+  }, []);
+
+  const paths = pathname.split('/').filter(p => p !== '');
+  const breadcrumb = paths.map(p => {
+    if (p === 'admin') return 'Panel';
+    return p.charAt(0).toUpperCase() + p.slice(1);
+  }).join(' / ');
+
+  const [isAlertOpen, setIsAlertOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [canConfirm, setCanConfirm] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(3);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/login');
+  };
+
+  const handleOpenAlert = () => {
+    setIsAlertOpen(true);
+    setCanConfirm(false);
+    setCountdown(3);
+  };
+
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isAlertOpen && countdown > 0) {
+      timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    } else if (isAlertOpen && countdown === 0) {
+      setCanConfirm(true);
+    }
+    return () => clearTimeout(timer);
+  }, [isAlertOpen, countdown]);
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      if (user && user.id) {
+        await api.delete(`/users/${user.id}`);
+        handleLogout();
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error al eliminar cuenta');
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+    }
+  };
 
   return (
+    <>
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10">
       <div className="text-sm font-medium text-muted-foreground">
         {breadcrumb || 'Inicio'}
@@ -86,14 +183,70 @@ export function Header() {
         </button>
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-muted"
         >
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          {mounted ? (
+            theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />
+          ) : (
+            <div className="w-5 h-5" />
+          )}
         </button>
-        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground cursor-pointer">
-          <UserCircle className="w-6 h-6" />
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground cursor-pointer transition-transform hover:scale-105">
+              <UserCircle className="w-6 h-6" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+              {userRole ? `Mi Cuenta (${userRole})` : 'Invitado'}
+            </div>
+            <DropdownMenuSeparator />
+            {userRole ? (
+              <>
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  <span>Cerrar sesión</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleOpenAlert} className="cursor-pointer text-red-600 focus:text-red-700">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  <span>Eliminar cuenta</span>
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <DropdownMenuItem onClick={() => router.push('/login')} className="cursor-pointer">
+                <UserCircle className="w-4 h-4 mr-2" />
+                <span>Iniciar sesión</span>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
+
+    <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta y removerá tus datos de nuestros servidores.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>NO</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={(e) => {
+              e.preventDefault();
+              handleDeleteAccount();
+            }} 
+            disabled={!canConfirm || isDeleting}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            {isDeleting ? 'Eliminando...' : canConfirm ? 'SI' : `SI (${countdown})`}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
