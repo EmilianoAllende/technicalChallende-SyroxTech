@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,9 +11,15 @@ import { api } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,14 +37,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md bg-card p-8 rounded-xl border border-border shadow-sm">
+      <div className="w-full max-w-md bg-card dark:bg-[#121212] p-8 rounded-xl border border-border shadow-sm">
         <div className="text-center mb-8 flex flex-col items-center">
-          <div className="w-20 h-20 mb-4 rounded-full overflow-hidden border-2 border-primary">
-            <img src="/astra_logo.jfif" alt="ASTRA Logo" className="w-full h-full object-cover" />
-          </div>
-          <h1 className="text-2xl font-bold text-primary tracking-widest">
-            ASTRA
-          </h1>
+          {mounted ? (
+            <img 
+              src={theme === 'dark' ? '/astra_logo_light.png' : '/astra_logo_dark.png'} 
+              alt="ASTRA Logo" 
+              className="w-auto h-24 object-contain mb-2 rounded-4xl" 
+            />
+          ) : (
+            <div className="w-16 h-16 rounded bg-muted animate-pulse mb-2"></div>
+          )}
           <h2 className="text-xl font-semibold mt-4 text-card-foreground">Inicia Sesión</h2>
           <p className="text-muted-foreground text-sm mt-1">Ingresa a tu cuenta para continuar</p>
         </div>

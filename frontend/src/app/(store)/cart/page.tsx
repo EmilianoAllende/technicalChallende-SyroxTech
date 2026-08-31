@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, total, clearCart } = useCart();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -31,8 +32,7 @@ export default function CartPage() {
         items: items.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price }))
       });
       clearCart();
-      alert('¡Compra realizada con éxito!');
-      router.push('/my-purchases');
+      setIsSuccessOpen(true);
     } catch (error) {
       alert('Hubo un error al procesar tu compra.');
     } finally {
@@ -130,6 +130,22 @@ export default function CartPage() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={goToLogin} className="bg-slate-600 hover:bg-slate-700 text-white">
               Proceder
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isSuccessOpen} onOpenChange={setIsSuccessOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¡Compra Realizada!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tu compra ha sido procesada correctamente. Podrás ver el detalle en la sección "Mis Compras".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => { setIsSuccessOpen(false); router.push('/my-purchases'); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              Entendido
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

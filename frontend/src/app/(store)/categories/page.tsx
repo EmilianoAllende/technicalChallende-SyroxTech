@@ -101,10 +101,7 @@ export default function CategoriesPage() {
         )}
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <div className="mb-4 w-72">
-          <Input placeholder="Buscar por nombre..." />
-        </div>
+      <div className="bg-card p-4 rounded-xl shadow-sm border border-border">
         <GenericTable 
           columns={columns} 
           data={categories} 

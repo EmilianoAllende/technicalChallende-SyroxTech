@@ -9,6 +9,9 @@ import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { api } from '@/lib/api';
+import { useCart } from './CartProvider';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const baseItems = [
   { name: 'Inicio', href: '/', icon: LayoutDashboard },
@@ -28,6 +31,8 @@ export function Sidebar() {
   const [userRole, setUserRole] = React.useState<string | null>(null);
   const { theme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  const { items: cartItems } = useCart();
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   React.useEffect(() => {
     setMounted(true);
@@ -59,7 +64,7 @@ export function Sidebar() {
           <img 
             src={theme === 'dark' ? '/astra_logo_light.png' : '/astra_logo_dark.png'} 
             alt="ASTRA Logo" 
-            className="w-auto h-8 object-contain" 
+            className="w-auto h-14 object-contain" 
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
@@ -75,11 +80,16 @@ export function Sidebar() {
                 key={item.name}
                 href={item.href}
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  isActive ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  isActive ? 'bg-slate-100 text-slate-900 font-medium dark:bg-slate-800 dark:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`}
               >
-                <item.icon className={`w-5 h-5 ${isActive ? 'text-slate-900' : 'text-slate-400'}`} />
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`} />
                 <span>{item.name}</span>
+                {item.name === 'Carrito' && cartCount > 0 && (
+                  <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -132,6 +142,16 @@ export function Header() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [canConfirm, setCanConfirm] = React.useState(false);
   const [countdown, setCountdown] = React.useState(3);
+  const [searchQuery, setSearchQuery] = React.useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push(`/products`);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -174,10 +194,24 @@ export function Header() {
   return (
     <>
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10">
-      <div className="text-sm font-medium text-muted-foreground">
-        {breadcrumb || 'Inicio'}
+      <div className="flex-1 flex items-center space-x-4">
+        <div className="text-sm font-medium text-muted-foreground whitespace-nowrap hidden sm:block">
+          {breadcrumb || 'Inicio'}
+        </div>
+        
+        <form onSubmit={handleSearch} className="relative w-full max-w-md hidden sm:block">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+            type="search" 
+            placeholder="Buscar productos por nombre..." 
+            className="w-full pl-9 bg-background" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </form>
       </div>
-      <div className="flex items-center space-x-4">
+
+      <div className="flex items-center space-x-4 ml-4">
         <button className="text-muted-foreground hover:text-foreground transition-colors">
           <Bell className="w-5 h-5" />
         </button>

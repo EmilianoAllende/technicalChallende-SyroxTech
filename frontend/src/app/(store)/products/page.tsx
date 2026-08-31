@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useCart } from '@/components/shared/CartProvider';
+import { useSearchParams } from 'next/navigation';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -21,6 +22,8 @@ export default function ProductsPage() {
   });
   const [userRole, setUserRole] = useState('USER');
   const { addToCart } = useCart();
+  const searchParams = useSearchParams();
+  const searchFilter = searchParams.get('search')?.toLowerCase() || '';
 
   const fetchData = async () => {
     try {
@@ -91,25 +94,28 @@ export default function ProductsPage() {
   };
 
   const columns: ColumnDef<any>[] = [
-    { key: 'name', header: 'Nombre', render: (row) => <div className="font-medium text-slate-900">{row.name}</div> },
+    { key: 'name', header: 'Nombre', render: (row) => <div className="font-medium text-slate-900 dark:text-slate-100">{row.name}</div> },
     { key: 'category', header: 'Categoría', render: (row) => row.category?.name || '-' },
     { key: 'brand', header: 'Marca', render: (row) => row.brand || '-' },
     { key: 'price', header: 'Precio', render: (row) => `$${row.price}` },
     { key: 'isActive', header: 'Estado', render: (row) => (
-      <Badge variant="outline" className={row.isActive ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}>
+      <Badge variant="outline" className={row.isActive ? "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-50 border-green-200" : "bg-red-50 text-red-700 border-red-200"}>
         {row.isActive ? 'Activo' : 'Inactivo'}
       </Badge>
     )},
     { key: 'cart', header: '', render: (row) => (
       <Button 
         size="sm" 
-        variant="outline" 
+        variant="default"
+        className="w-full sm:w-auto"
         onClick={() => addToCart({ productId: row.id, name: row.name, price: row.price, quantity: 1 })}
       >
         Añadir al carrito
       </Button>
     )},
   ];
+
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchFilter));
 
   return (
     <div className="space-y-6">
@@ -122,16 +128,13 @@ export default function ProductsPage() {
         )}
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <div className="mb-4 flex items-center space-x-4">
-          <div className="flex-1 max-w-md">
-            <Input placeholder="Buscar productos por nombre..." />
-          </div>
+      <div className="bg-card p-4 rounded-xl shadow-sm border border-border">
+        <div className="mb-4 flex items-center justify-end">
           <Button variant="outline">Filtros</Button>
         </div>
         <GenericTable 
           columns={columns} 
-          data={products} 
+          data={filteredProducts} 
           onEdit={(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? handleEdit : undefined} 
           onDelete={(userRole === 'ADMIN' || userRole === 'SUPERADMIN') ? handleDelete : undefined} 
         />
