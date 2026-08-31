@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useCart } from '@/components/shared/CartProvider';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Suspense } from 'react';
 
 function ProductsContent() {
@@ -24,7 +24,10 @@ function ProductsContent() {
   const [userRole, setUserRole] = useState('USER');
   const { addToCart } = useCart();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchFilter = searchParams.get('search')?.toLowerCase() || '';
+  const categoryFilter = searchParams.get('category') || '';
 
   const fetchData = async () => {
     try {
@@ -116,7 +119,21 @@ function ProductsContent() {
     )},
   ];
 
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchFilter));
+  const handleCategorySelect = (categoryId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (categoryId) {
+      params.set('category', categoryId);
+    } else {
+      params.delete('category');
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchFilter);
+    const matchesCategory = categoryFilter ? p.categoryId?.toString() === categoryFilter : true;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="space-y-6">
@@ -130,8 +147,28 @@ function ProductsContent() {
       </div>
 
       <div className="bg-card p-4 rounded-xl shadow-sm border border-border">
-        <div className="mb-4 flex items-center justify-end">
-          <Button variant="outline">Filtros</Button>
+        <div className="mb-4 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto w-full pb-1 scrollbar-hide">
+            <Button 
+              variant={!categoryFilter ? "default" : "outline"}
+              onClick={() => handleCategorySelect('')}
+              size="sm"
+              className="rounded-full whitespace-nowrap"
+            >
+              Todas
+            </Button>
+            {categories.map(cat => (
+              <Button 
+                key={cat.id}
+                variant={categoryFilter === cat.id.toString() ? "default" : "outline"}
+                onClick={() => handleCategorySelect(cat.id.toString())}
+                size="sm"
+                className="rounded-full whitespace-nowrap"
+              >
+                {cat.name}
+              </Button>
+            ))}
+          </div>
         </div>
         <GenericTable 
           columns={columns} 
