@@ -19,7 +19,7 @@ function ProductsContent() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ 
-    id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '' 
+    id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '', imageUrl: '' 
   });
   const [userRole, setUserRole] = useState('USER');
   const { addToCart } = useCart();
@@ -81,7 +81,8 @@ function ProductsContent() {
       gender: row.gender || '', 
       brand: row.brand || '', 
       price: row.price || 0,
-      categoryId: row.categoryId?.toString() || ''
+      categoryId: row.categoryId?.toString() || '',
+      imageUrl: row.imageUrl || ''
     });
     setIsModalOpen(true);
   };
@@ -98,6 +99,13 @@ function ProductsContent() {
   };
 
   const columns: ColumnDef<any>[] = [
+    { key: 'image', header: 'Imagen', render: (row) => (
+      row.imageUrl ? (
+        <img src={row.imageUrl} alt={row.name} className="w-10 h-10 object-cover rounded-md border border-border" />
+      ) : (
+        <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center justify-center text-[10px] text-slate-400 border border-border">S/I</div>
+      )
+    )},
     { key: 'name', header: 'Nombre', render: (row) => <div className="font-medium text-slate-900 dark:text-slate-100">{row.name}</div> },
     { key: 'category', header: 'Categoría', render: (row) => row.category?.name || '-' },
     { key: 'brand', header: 'Marca', render: (row) => row.brand || '-' },
@@ -112,7 +120,7 @@ function ProductsContent() {
         size="sm" 
         variant="default"
         className="w-full sm:w-auto"
-        onClick={() => addToCart({ productId: row.id, name: row.name, price: row.price, quantity: 1 })}
+        onClick={() => addToCart({ productId: row.id, name: row.name, price: row.price, quantity: 1, imageUrl: row.imageUrl })}
       >
         Añadir al carrito
       </Button>
@@ -140,7 +148,7 @@ function ProductsContent() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Productos</h1>
         {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') && (
-          <Button onClick={() => { setFormData({ id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '' }); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button onClick={() => { setFormData({ id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '', imageUrl: '' }); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             + Nuevo Producto
           </Button>
         )}
@@ -192,6 +200,10 @@ function ProductsContent() {
               <div className="space-y-2 col-span-2">
                 <Label>Descripción</Label>
                 <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>URL de Imagen</Label>
+                <Input value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} placeholder="https://ejemplo.com/imagen.jpg" />
               </div>
               <div className="space-y-2">
                 <Label>Categoría *</Label>

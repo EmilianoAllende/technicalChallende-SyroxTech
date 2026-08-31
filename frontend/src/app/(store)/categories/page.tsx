@@ -74,20 +74,6 @@ export default function CategoriesPage() {
   const columns: ColumnDef<any>[] = [
     { key: 'position', header: 'Posición' },
     { key: 'name', header: 'Nombre' },
-    { 
-      key: 'subcategories', 
-      header: 'Subcategorías',
-      render: (row) => <span className="text-sm text-slate-500">{row.subcategories?.length || 0} subcategorías</span>
-    },
-    { 
-      key: 'parentId', 
-      header: 'Categoría Padre',
-      render: (row) => row.parent ? (
-        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-xs">{row.parent.name}</span>
-      ) : (
-        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md text-xs">Principal</span>
-      )
-    },
   ];
 
   return (
@@ -123,20 +109,6 @@ export default function CategoriesPage() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
                 required 
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Categoría Padre</Label>
-              <Select value={formData.parentId || ''} onValueChange={(val) => setFormData({ ...formData, parentId: val || '' })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Principal (sin padre)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Principal (sin padre)</SelectItem>
-                  {categories.filter(c => c.id !== formData.id).map(cat => (
-                    <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-2">
               <Label>Posición</Label>

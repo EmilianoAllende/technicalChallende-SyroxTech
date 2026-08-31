@@ -15,8 +15,6 @@ import { Search } from 'lucide-react';
 
 const baseItems = [
   { name: 'Inicio', href: '/', icon: LayoutDashboard },
-  { name: 'Categorías', href: '/categories', icon: Tags },
-  { name: 'Marcas', href: '/brands', icon: Tags },
   { name: 'Productos', href: '/products', icon: Package },
   { name: 'Carrito', href: '/cart', icon: ShoppingCart },
 ];
@@ -50,6 +48,8 @@ export function Sidebar() {
     items.push({ name: 'Mis Compras', href: '/my-purchases', icon: Package });
   }
   if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
+    items.push({ name: 'Categorías', href: '/categories', icon: Tags });
+    items.push({ name: 'Marcas', href: '/brands', icon: Tags });
     items.push({ name: 'Ventas', href: '/sales', icon: ShoppingCart });
     items.push({ name: 'Estadísticas', href: '/stats', icon: BarChart3 });
   }

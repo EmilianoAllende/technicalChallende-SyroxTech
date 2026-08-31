@@ -11,8 +11,8 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
   - Historial de compras personalizado ("Mis Compras") con seguimiento de fechas, número de orden y desglose de unidades.
 
 - **Gestión Completa de Catálogo (CRUD):**
-  - **Categorías:** Crear, leer, actualizar y eliminar categorías de productos con soporte para jerarquías (categorías padre/hijo).
-  - **Productos:** Gestión de artículos del inventario con atributos como nombre, descripción, precio, marca, género y estado.
+  - **Categorías:** Filtro dinámico en el catálogo principal mediante botones (chips). Panel de administración exclusivo para gestionar categorías y marcas, reservado únicamente para roles de administrador.
+  - **Productos:** Gestión de artículos del inventario con atributos expandidos como nombre, precio, marca, género e integración de **imágenes por URL**, ofreciendo una experiencia premium en el catálogo y carrito.
 
 - **Gestión de Ventas e Inventario:**
   - Registro de ventas detallado, conectando a los usuarios con las ventas y guardando cada artículo vendido mediante el modelo `SaleItem`.

@@ -64,9 +64,16 @@ export default function CartPage() {
         <div className="divide-y divide-border">
           {items.map(item => (
             <div key={item.productId} className="p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg text-foreground">{item.name}</h3>
-                <p className="text-primary font-medium mt-1">${item.price.toFixed(2)}</p>
+              <div className="flex flex-1 items-center gap-4">
+                {item.imageUrl ? (
+                  <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-md border border-border" />
+                ) : (
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center justify-center text-xs text-slate-400 border border-border">S/I</div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-lg text-foreground">{item.name}</h3>
+                  <p className="text-primary font-medium mt-1">${item.price.toFixed(2)}</p>
+                </div>
               </div>
               
               <div className="flex items-center gap-4">
