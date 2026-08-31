@@ -12,8 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useCart } from '@/components/shared/CartProvider';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function ProductsPage() {
+function ProductsContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -194,5 +195,13 @@ export default function ProductsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando productos...</div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }
