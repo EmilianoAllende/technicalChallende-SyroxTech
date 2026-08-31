@@ -157,7 +157,7 @@ export default function ProductsPage() {
               </div>
               <div className="space-y-2">
                 <Label>Categoría *</Label>
-                <Select value={formData.categoryId || ''} onValueChange={(val) => setFormData({ ...formData, categoryId: val })} required>
+                <Select value={formData.categoryId || ''} onValueChange={(val) => setFormData({ ...formData, categoryId: val || '' })} required>
                   <SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger>
                   <SelectContent>
                     {categories.map(cat => (
@@ -168,7 +168,7 @@ export default function ProductsPage() {
               </div>
               <div className="space-y-2">
                 <Label>Género</Label>
-                <Select value={formData.gender || ''} onValueChange={(val) => setFormData({ ...formData, gender: val })}>
+                <Select value={formData.gender || ''} onValueChange={(val) => setFormData({ ...formData, gender: val || '' })}>
                   <SelectTrigger><SelectValue placeholder="Selecciona un género" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Hombre">Hombre</SelectItem>

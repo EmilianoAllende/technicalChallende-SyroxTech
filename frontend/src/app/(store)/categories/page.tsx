@@ -126,7 +126,7 @@ export default function CategoriesPage() {
             </div>
             <div className="space-y-2">
               <Label>Categoría Padre</Label>
-              <Select value={formData.parentId || ''} onValueChange={(val) => setFormData({ ...formData, parentId: val })}>
+              <Select value={formData.parentId || ''} onValueChange={(val) => setFormData({ ...formData, parentId: val || '' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Principal (sin padre)" />
                 </SelectTrigger>

@@ -166,7 +166,7 @@ export default function UsersPage() {
             </div>
             <div className="space-y-2">
               <Label>Rol</Label>
-              <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
+              <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val || '' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
