@@ -24,8 +24,13 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
   - Diferenciación de accesos en la interfaz:
     - **Visitantes (Guest) / `USER`**: Solo acceden al catálogo público, a su carrito de compras y a su historial de ventas personal.
     - **`ADMIN` y `SUPERADMIN`**: Acceden a la vista de "Estadísticas" y a la gestión del inventario global y todas las ventas.
-  - Panel exclusivo de administración de credenciales y cuentas de usuario para el `SUPERADMIN`, con poder para crear nuevos súper-usuarios.
+  - Panel exclusivo de administración de credenciales y cuentas de usuario para el `SUPERADMIN`, con poder para crear nuevos súper-usuarios. Además, cuenta con un bloqueo de seguridad que impide que el superadministrador activo degrade su propio rol por accidente.
   - Mecanismo seguro de auto-eliminación de cuentas, protegido con retrasos modales para prevención de accidentes.
+
+- **Integración de Pagos (Stripe):**
+  - Implementación de Checkout Sessions para un flujo de pago seguro sin retener datos de tarjetas en el frontend.
+  - Sincronización asíncrona de estado de ventas mediante Webhooks, actualizando automáticamente el estado del pedido a "Pagado" tras un cobro exitoso.
+  - "Modo Simulación" programado para entornos de prueba sin claves de producción.
 
 - **Diseño Moderno y Responsivo:**
   - Tema Oscuro (Dark Mode) y Claro, adaptando automáticamente los logos de la marca.
@@ -44,6 +49,7 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
 - **Framework:** NestJS
 - **Base de Datos:** PostgreSQL (Alojado en Supabase)
 - **ORM:** Prisma
+- **Pagos:** Stripe SDK (Integración con Checkout Sessions y Webhooks)
 - **Seguridad:** Encriptación de contraseñas con bcrypt
 
 ## 📂 Estructura del Proyecto

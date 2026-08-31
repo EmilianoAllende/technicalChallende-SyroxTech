@@ -16,6 +16,7 @@ export default function UsersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ id: null, email: '', password: '', role: 'USER' });
   const [sortBy, setSortBy] = useState<'date' | 'alphabetical'>('date');
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -28,6 +29,13 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setCurrentUserId(user.id);
+      } catch (e) {}
+    }
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -166,7 +174,11 @@ export default function UsersPage() {
             </div>
             <div className="space-y-2">
               <Label>Rol</Label>
-              <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val || '' })}>
+              <Select 
+                value={formData.role} 
+                onValueChange={(val) => setFormData({ ...formData, role: val || '' })}
+                disabled={formData.id === currentUserId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
@@ -176,6 +188,9 @@ export default function UsersPage() {
                   <SelectItem value="SUPERADMIN">SUPERADMIN</SelectItem>
                 </SelectContent>
               </Select>
+              {formData.id === currentUserId && (
+                <p className="text-xs text-muted-foreground">No puedes modificar tu propio rol por seguridad.</p>
+              )}
             </div>
             <div className="flex justify-end pt-4">
               <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">

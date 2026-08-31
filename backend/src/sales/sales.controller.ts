@@ -1,13 +1,28 @@
 import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { SalesService } from './sales.service';
 
+import { PaymentsService } from '../payments/payments.service';
+
 @Controller('sales')
 export class SalesController {
-  constructor(private readonly salesService: SalesService) {}
+  constructor(
+    private readonly salesService: SalesService,
+    private readonly paymentsService: PaymentsService,
+  ) {}
 
   @Post()
-  create(@Body() data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number }[] }) {
-    return this.salesService.create(data);
+  async create(@Body() data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number, name?: string }[] }) {
+    // 1. Crear la venta en la DB (Pendiente)
+    const sale = await this.salesService.create(data);
+    
+    // 2. Generar sesión de Stripe
+    const session = await this.paymentsService.createCheckoutSession(
+      sale.id,
+      data.items,
+      data.clientEmail
+    );
+
+    return { sale, url: session.url };
   }
 
   @Get('my-purchases')

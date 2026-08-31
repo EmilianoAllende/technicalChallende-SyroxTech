@@ -6,10 +6,10 @@ import { randomUUID } from 'crypto';
 export class SalesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number }[] }) {
+  async create(data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number, name?: string }[] }) {
     const orderNumber = randomUUID().split('-')[0].toUpperCase();
     const status = 'En Preparación';
-    const paymentStatus = 'Pagado';
+    const paymentStatus = 'Pendiente';
     
     const total = data.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 

@@ -5,15 +5,30 @@ import { useCart } from '@/components/shared/CartProvider';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
 import { api } from '@/lib/api';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Suspense } from 'react';
 
-export default function CartPage() {
+function CartContent() {
   const { items, updateQuantity, removeFromCart, total, clearCart } = useCart();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      clearCart();
+      setIsSuccessOpen(true);
+      // Opcionalmente limpiar la URL
+      router.replace('/cart');
+    }
+    if (searchParams.get('canceled') === 'true') {
+      alert('El pago fue cancelado. Puedes intentar de nuevo.');
+      router.replace('/cart');
+    }
+  }, [searchParams]);
 
   const handleCheckout = async () => {
     const userStr = localStorage.getItem('user');
@@ -25,14 +40,19 @@ export default function CartPage() {
     try {
       setLoading(true);
       const user = JSON.parse(userStr);
-      await api.post('/sales', {
+      const res = await api.post('/sales', {
         clientName: user.email.split('@')[0],
         clientEmail: user.email,
         userId: user.id,
-        items: items.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price }))
+        items: items.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price, name: i.name }))
       });
-      clearCart();
-      setIsSuccessOpen(true);
+      
+      if (res.data && res.data.url) {
+        window.location.href = res.data.url; // Redirect to Stripe
+      } else {
+        clearCart();
+        setIsSuccessOpen(true);
+      }
     } catch (error) {
       alert('Hubo un error al procesar tu compra.');
     } finally {
@@ -158,5 +178,13 @@ export default function CartPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Cargando carrito...</div>}>
+      <CartContent />
+    </Suspense>
   );
 }
