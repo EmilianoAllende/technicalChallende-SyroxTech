@@ -20,6 +20,8 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
 
 - **Sistema de Autenticación y Control de Acceso Basado en Roles (RBAC):**
   - Cuentas de usuario protegidas por encriptación fuerte (`bcrypt`).
+  - Registro de cuentas nativo e inicio de sesión con correo y contraseña.
+  - Integración de Inicio de Sesión y Registro con **Google OAuth (SSO)** para un acceso rápido y seguro.
   - Roles definidos: `USER`, `ADMIN` y `SUPERADMIN`.
   - Diferenciación de accesos en la interfaz:
     - **Visitantes (Guest) / `USER`**: Solo acceden al catálogo público, a su carrito de compras y a su historial de ventas personal.
