@@ -3,13 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { GenericTable, ColumnDef } from '@/components/shared/GenericTable';
 import { Button } from '@/components/ui/button';
-import { api } from '@/lib/api';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { api } from '@/lib/api';
+import { ProductForm } from '@/components/shared/forms/ProductForm';
 import { useCart } from '@/components/shared/CartProvider';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Suspense } from 'react';
@@ -18,9 +14,7 @@ function ProductsContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ 
-    id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '', imageUrl: '' 
-  });
+  const [editingData, setEditingData] = useState<any>(null);
   const [userRole, setUserRole] = useState('USER');
   const { addToCart } = useCart();
   const searchParams = useSearchParams();
@@ -53,28 +47,10 @@ function ProductsContent() {
     }
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload = {
-      ...formData,
-      price: Number(formData.price),
-      categoryId: Number(formData.categoryId)
-    };
-    try {
-      if (formData.id) {
-        await api.patch(`/products/${formData.id}`, payload);
-      } else {
-        await api.post('/products', payload);
-      }
-      setIsModalOpen(false);
-      fetchData();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+
 
   const handleEdit = (row: any) => {
-    setFormData({ 
+    setEditingData({ 
       id: row.id, 
       name: row.name, 
       description: row.description || '', 
@@ -148,7 +124,7 @@ function ProductsContent() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Productos</h1>
         {(userRole === 'ADMIN' || userRole === 'SUPERADMIN') && (
-          <Button onClick={() => { setFormData({ id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '', imageUrl: '' }); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button onClick={() => { setEditingData(null); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             + Nuevo Producto
           </Button>
         )}
@@ -186,63 +162,13 @@ function ProductsContent() {
         />
       </div>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{formData.id ? 'Editar Producto' : 'Crear Producto'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2 col-span-2">
-                <Label>Nombre del Producto *</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label>Descripción</Label>
-                <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label>URL de Imagen</Label>
-                <Input value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} placeholder="https://ejemplo.com/imagen.jpg" />
-              </div>
-              <div className="space-y-2">
-                <Label>Categoría *</Label>
-                <Select value={formData.categoryId || ''} onValueChange={(val) => setFormData({ ...formData, categoryId: val || '' })} required>
-                  <SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Género</Label>
-                <Select value={formData.gender || ''} onValueChange={(val) => setFormData({ ...formData, gender: val || '' })}>
-                  <SelectTrigger><SelectValue placeholder="Selecciona un género" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Hombre">Hombre</SelectItem>
-                    <SelectItem value="Mujer">Mujer</SelectItem>
-                    <SelectItem value="Unisex">Unisex</SelectItem>
-                    <SelectItem value="Niño">Niño</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Marca</Label>
-                <Input value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Precio</Label>
-                <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })} />
-              </div>
-            </div>
-            <div className="flex justify-end pt-4 border-t border-border mt-6">
-              <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">{formData.id ? 'Guardar Cambios' : 'Crear Producto'}</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ProductForm 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchData}
+        categories={categories}
+        initialData={editingData}
+      />
     </div>
   );
 }

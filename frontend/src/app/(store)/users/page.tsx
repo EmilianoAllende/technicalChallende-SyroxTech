@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UserForm } from '@/components/shared/forms/UserForm';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,7 +14,7 @@ import { es } from 'date-fns/locale';
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ id: null, email: '', password: '', role: 'USER' });
+  const [editingData, setEditingData] = useState<any>(null);
   const [sortBy, setSortBy] = useState<'date' | 'alphabetical'>('date');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
@@ -38,31 +38,10 @@ export default function UsersPage() {
     }
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload: any = {
-      email: formData.email,
-      role: formData.role,
-    };
-    if (formData.password) {
-      payload.password = formData.password;
-    }
 
-    try {
-      if (formData.id) {
-        await api.patch(`/users/${formData.id}`, payload);
-      } else {
-        await api.post('/users', payload);
-      }
-      setIsModalOpen(false);
-      fetchUsers();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al guardar el usuario');
-    }
-  };
 
   const handleEdit = (user: any) => {
-    setFormData({ id: user.id, email: user.email, password: '', role: user.role });
+    setEditingData({ id: user.id, email: user.email, password: '', role: user.role });
     setIsModalOpen(true);
   };
 
@@ -88,7 +67,7 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Gestión de Usuarios</h1>
-        <Button onClick={() => { setFormData({ id: null, email: '', password: '', role: 'USER' }); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button onClick={() => { setEditingData(null); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground">
           + Nuevo Usuario
         </Button>
       </div>
@@ -147,59 +126,13 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{formData.id ? 'Editar Usuario' : 'Nuevo Usuario'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input 
-                type="email"
-                value={formData.email} 
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Contraseña {formData.id && '(Dejar en blanco para no cambiar)'}</Label>
-              <Input 
-                type="password"
-                value={formData.password} 
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-                required={!formData.id}
-                minLength={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Rol</Label>
-              <Select 
-                value={formData.role} 
-                onValueChange={(val) => setFormData({ ...formData, role: val || '' })}
-                disabled={formData.id === currentUserId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USER">USER</SelectItem>
-                  <SelectItem value="ADMIN">ADMIN</SelectItem>
-                  <SelectItem value="SUPERADMIN">SUPERADMIN</SelectItem>
-                </SelectContent>
-              </Select>
-              {formData.id === currentUserId && (
-                <p className="text-xs text-muted-foreground">No puedes modificar tu propio rol por seguridad.</p>
-              )}
-            </div>
-            <div className="flex justify-end pt-4">
-              <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                {formData.id ? 'Actualizar' : 'Crear'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <UserForm 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchUsers}
+        currentUserId={currentUserId}
+        initialData={editingData}
+      />
     </div>
   );
 }
