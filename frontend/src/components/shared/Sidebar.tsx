@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, Tags, Package, Users, BarChart3, Settings, HelpCircle, Bell, Sun, Moon, UserCircle, LogOut, Trash2 } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Tags, Package, Users, BarChart3, Settings, HelpCircle, Bell, Sun, Moon, UserCircle, LogOut, Trash2, Menu } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -24,7 +24,7 @@ const bottomItems = [
   { name: 'Ayuda', href: '/help', icon: HelpCircle },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
   const [userRole, setUserRole] = React.useState<string | null>(null);
   const { theme } = useTheme();
@@ -58,37 +58,47 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-64 h-screen bg-card border-r border-border flex flex-col fixed left-0 top-0">
-      <div className="h-16 flex items-center px-6 border-b border-border space-x-3">
+    <aside className={`h-screen bg-card border-r border-border flex flex-col fixed left-0 top-0 transition-all duration-300 ease-in-out z-20 ${isOpen ? 'w-64' : 'w-20'}`}>
+      <div className="h-16 flex items-center justify-center border-b border-border">
         {mounted ? (
-          <img 
-            src={theme === 'dark' ? '/astra_logo_light.png' : '/astra_logo_dark.png'} 
-            alt="ASTRA Logo" 
-            className="w-auto h-14 object-contain" 
-          />
+          isOpen ? (
+            <img 
+              src={theme === 'dark' ? '/astra_logo_light.png' : '/astra_logo_dark.png'} 
+              alt="ASTRA Logo" 
+              className="w-auto h-14 object-contain px-2" 
+            />
+          ) : (
+             <div className="font-bold text-3xl tracking-tighter text-primary">A</div>
+          )
         ) : (
           <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
         )}
       </div>
       
-      <div className="flex-1 overflow-y-auto py-4">
-        <nav className="space-y-1 px-3">
+      <div className="flex-1 overflow-y-auto py-4 scrollbar-hide">
+        <nav className="space-y-2 px-3">
           {items.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
+                className={`flex items-center rounded-lg transition-colors ${
+                  isOpen ? 'px-3 py-2.5 space-x-3' : 'justify-center p-3 relative'
+                } ${
                   isActive ? 'bg-slate-100 text-slate-900 font-medium dark:bg-slate-800 dark:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`}
+                title={!isOpen ? item.name : undefined}
               >
-                <item.icon className={`w-5 h-5 ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`} />
-                <span>{item.name}</span>
-                {item.name === 'Carrito' && cartCount > 0 && (
+                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`} />
+                {isOpen && <span>{item.name}</span>}
+                {isOpen && item.name === 'Carrito' && cartCount > 0 && (
                   <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
                     {cartCount}
                   </span>
+                )}
+                {!isOpen && item.name === 'Carrito' && cartCount > 0 && (
+                   <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></div>
                 )}
               </Link>
             );
@@ -97,15 +107,18 @@ export function Sidebar() {
       </div>
 
       <div className="p-4 border-t">
-        <nav className="space-y-1">
+        <nav className="space-y-2">
           {bottomItems.map((item) => (
             <Link
               key={item.name}
               href={item.href}
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              className={`flex items-center rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors ${
+                isOpen ? 'px-3 py-2 space-x-3' : 'justify-center p-3 relative'
+              }`}
+              title={!isOpen ? item.name : undefined}
             >
-              <item.icon className="w-5 h-5 text-slate-400" />
-              <span>{item.name}</span>
+              <item.icon className="w-5 h-5 shrink-0 text-slate-400" />
+              {isOpen && <span>{item.name}</span>}
             </Link>
           ))}
         </nav>
@@ -114,7 +127,7 @@ export function Sidebar() {
   );
 }
 
-export function Header() {
+export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -193,8 +206,13 @@ export function Header() {
 
   return (
     <>
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10">
+    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 transition-all">
       <div className="flex-1 flex items-center space-x-4">
+        {toggleSidebar && (
+          <button onClick={toggleSidebar} className="p-2 -ml-2 rounded-md hover:bg-muted text-muted-foreground transition-colors">
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
         <div className="text-sm font-medium text-muted-foreground whitespace-nowrap hidden sm:block">
           {breadcrumb || 'Inicio'}
         </div>
