@@ -14,6 +14,7 @@ function CartContent() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mercadopago'>('stripe');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -44,6 +45,7 @@ function CartContent() {
         clientName: user.email.split('@')[0],
         clientEmail: user.email,
         userId: user.id,
+        paymentMethod,
         items: items.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price, name: i.name }))
       });
       
@@ -129,14 +131,29 @@ function CartContent() {
           ))}
         </div>
         
-        <div className="p-6 bg-muted/50 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
+        <div className="p-6 bg-muted/50 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex-1 text-center md:text-left">
             <p className="text-sm text-muted-foreground">Total a pagar</p>
             <p className="text-3xl font-bold text-foreground">${total.toFixed(2)}</p>
           </div>
+
+          <div className="flex flex-col gap-3 bg-background p-4 rounded-lg border border-border shadow-sm w-full md:w-auto">
+            <span className="text-sm font-semibold text-foreground border-b border-border pb-1">Método de Pago:</span>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" name="paymentMethod" value="stripe" checked={paymentMethod === 'stripe'} onChange={() => setPaymentMethod('stripe')} className="w-4 h-4 text-primary accent-primary" />
+                <span className="text-sm font-medium group-hover:text-primary transition-colors">Stripe (Tarjetas)</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" name="paymentMethod" value="mercadopago" checked={paymentMethod === 'mercadopago'} onChange={() => setPaymentMethod('mercadopago')} className="w-4 h-4 text-primary accent-primary" />
+                <span className="text-sm font-medium group-hover:text-primary transition-colors">MercadoPago (Tarjetas / Saldo)</span>
+              </label>
+            </div>
+          </div>
+
           <Button 
             size="lg" 
-            className="w-full sm:w-auto bg-slate-500 hover:bg-slate-600 text-white font-semibold"
+            className="w-full md:w-auto bg-slate-600 hover:bg-slate-700 text-white font-semibold h-14 px-8 text-lg rounded-xl shadow-md transition-all hover:shadow-lg active:scale-95"
             onClick={handleCheckout}
             disabled={loading}
           >

@@ -29,10 +29,10 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
   - Panel exclusivo de administración de credenciales y cuentas de usuario para el `SUPERADMIN`, con poder para crear nuevos súper-usuarios. Además, cuenta con un bloqueo de seguridad que impide que el superadministrador activo degrade su propio rol por accidente.
   - Mecanismo seguro de auto-eliminación de cuentas, protegido con retrasos modales para prevención de accidentes.
 
-- **Integración de Pagos (Stripe):**
-  - Implementación de Checkout Sessions para un flujo de pago seguro sin retener datos de tarjetas en el frontend.
-  - Sincronización asíncrona de estado de ventas mediante Webhooks, actualizando automáticamente el estado del pedido a "Pagado" tras un cobro exitoso.
-  - "Modo Simulación" programado para entornos de prueba sin claves de producción.
+- **Integración de Pagos (Stripe y MercadoPago):**
+  - Implementación de Checkout Sessions (Stripe) y Checkout Pro (MercadoPago) para múltiples métodos de pago seguros.
+  - Sincronización asíncrona de estado de ventas mediante Webhooks (IPN) para ambas pasarelas.
+  - "Modo Simulación" programado para entornos de demostración y pruebas locales.
 
 - **Diseño Moderno y Responsivo:**
   - Tema Oscuro (Dark Mode) y Claro, adaptando automáticamente los logos de la marca.

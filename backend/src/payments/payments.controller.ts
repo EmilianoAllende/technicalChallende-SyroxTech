@@ -1,4 +1,4 @@
-import { Controller, Post, Req, Res, Headers } from '@nestjs/common';
+import { Controller, Post, Req, Res, Headers, Query } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')
@@ -22,6 +22,17 @@ export class PaymentsController {
     } catch (err: any) {
       console.error('Webhook Error:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  }
+
+  @Post('webhook/mercadopago')
+  async handleMercadoPagoWebhook(@Query() query: any, @Res() res: any) {
+    try {
+      const result = await this.paymentsService.handleMercadoPagoWebhook(query);
+      return res.status(200).send(result);
+    } catch (err: any) {
+      console.error('MP Webhook Error:', err.message);
+      return res.status(400).send(`MP Webhook Error: ${err.message}`);
     }
   }
 }

@@ -11,16 +11,25 @@ export class SalesController {
   ) {}
 
   @Post()
-  async create(@Body() data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number, name?: string }[] }) {
+  async create(@Body() data: { clientName: string; clientEmail: string; userId?: number; paymentMethod?: 'stripe' | 'mercadopago'; items: { productId: number; quantity: number; price: number, name?: string }[] }) {
     // 1. Crear la venta en la DB (Pendiente)
     const sale = await this.salesService.create(data);
     
-    // 2. Generar sesión de Stripe
-    const session = await this.paymentsService.createCheckoutSession(
-      sale.id,
-      data.items,
-      data.clientEmail
-    );
+    // 2. Generar sesión de pago
+    let session;
+    if (data.paymentMethod === 'mercadopago') {
+      session = await this.paymentsService.createMercadoPagoPreference(
+        sale.id,
+        data.items,
+        data.clientEmail
+      );
+    } else {
+      session = await this.paymentsService.createCheckoutSession(
+        sale.id,
+        data.items,
+        data.clientEmail
+      );
+    }
 
     return { sale, url: session.url };
   }
