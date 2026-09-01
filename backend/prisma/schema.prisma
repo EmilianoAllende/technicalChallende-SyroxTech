@@ -20,6 +20,11 @@ enum Role {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
+  username  String?  @unique
+  firstName String?
+  lastName  String?
+  birthDate DateTime?
+  avatarUrl String?
   password  String
   role      Role     @default(USER)
   sales     Sale[]

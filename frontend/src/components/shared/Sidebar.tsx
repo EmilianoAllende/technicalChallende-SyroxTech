@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, Tags, Package, Users, BarChart3, Settings, HelpCircle, Bell, Sun, Moon, UserCircle, LogOut, Trash2, Menu } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Tags, Package, Users, BarChart3, Settings, HelpCircle, Bell, Sun, Moon, UserCircle, LogOut, Trash2, Menu, UserCog } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -20,7 +20,7 @@ const baseItems = [
 ];
 
 const bottomItems = [
-  { name: 'Configuración', href: '/settings', icon: Settings },
+  { name: 'Cuenta', href: '/account', icon: UserCog },
   { name: 'Ayuda', href: '/help', icon: HelpCircle },
 ];
 
@@ -151,10 +151,6 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
     return p.charAt(0).toUpperCase() + p.slice(1);
   }).join(' / ');
 
-  const [isAlertOpen, setIsAlertOpen] = React.useState(false);
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [canConfirm, setCanConfirm] = React.useState(false);
-  const [countdown, setCountdown] = React.useState(3);
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -170,38 +166,6 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     router.push('/login');
-  };
-
-  const handleOpenAlert = () => {
-    setIsAlertOpen(true);
-    setCanConfirm(false);
-    setCountdown(3);
-  };
-
-  React.useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isAlertOpen && countdown > 0) {
-      timer = setTimeout(() => setCountdown(c => c - 1), 1000);
-    } else if (isAlertOpen && countdown === 0) {
-      setCanConfirm(true);
-    }
-    return () => clearTimeout(timer);
-  }, [isAlertOpen, countdown]);
-
-  const handleDeleteAccount = async () => {
-    setIsDeleting(true);
-    try {
-      const userStr = localStorage.getItem('user');
-      const user = userStr ? JSON.parse(userStr) : null;
-      if (user && user.id) {
-        await api.delete(`/users/${user.id}`);
-        handleLogout();
-      }
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al eliminar cuenta');
-      setIsDeleting(false);
-      setIsAlertOpen(false);
-    }
   };
 
   return (
@@ -260,10 +224,6 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
                   <LogOut className="w-4 h-4 mr-2" />
                   <span>Cerrar sesión</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleOpenAlert} className="cursor-pointer text-red-600 focus:text-red-700">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  <span>Eliminar cuenta</span>
-                </DropdownMenuItem>
               </>
             ) : (
               <DropdownMenuItem onClick={() => router.push('/login')} className="cursor-pointer">
@@ -275,30 +235,6 @@ export function Header({ toggleSidebar }: { toggleSidebar?: () => void }) {
         </DropdownMenu>
       </div>
     </header>
-
-    <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta y removerá tus datos de nuestros servidores.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>NO</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={(e) => {
-              e.preventDefault();
-              handleDeleteAccount();
-            }} 
-            disabled={!canConfirm || isDeleting}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            {isDeleting ? 'Eliminando...' : canConfirm ? 'SI' : `SI (${countdown})`}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 }
