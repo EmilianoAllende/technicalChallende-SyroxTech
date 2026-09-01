@@ -15,7 +15,7 @@ interface ProductFormProps {
   initialData?: any;
 }
 
-const DEFAULT_FORM = { id: null, name: '', description: '', gender: '', brand: '', price: 0, categoryId: '', imageUrl: '' };
+const DEFAULT_FORM = { id: null, name: '', description: '', gender: '', brand: '', price: 0, stock: 0, categoryId: '', imageUrl: '' };
 
 export function ProductForm({ isOpen, onClose, onSuccess, categories, initialData }: ProductFormProps) {
   const [formData, setFormData] = useState(DEFAULT_FORM);
@@ -33,6 +33,7 @@ export function ProductForm({ isOpen, onClose, onSuccess, categories, initialDat
     const payload = {
       ...formData,
       price: Number(formData.price),
+      stock: Number(formData.stock),
       categoryId: Number(formData.categoryId)
     };
     try {
@@ -98,6 +99,10 @@ export function ProductForm({ isOpen, onClose, onSuccess, categories, initialDat
             <div className="space-y-2">
               <Label>Precio</Label>
               <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Stock</Label>
+              <Input type="number" step="1" min="0" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })} required />
             </div>
           </div>
           <div className="flex justify-end pt-4 border-t border-border mt-6">

@@ -46,6 +46,7 @@ model Product {
   gender      String?
   brand       String?
   price       Float    @default(0.0)
+  stock       Int      @default(0)
   imageUrl    String?
   isActive    Boolean  @default(true)
   categoryId  Int

@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: { name: string; description?: string; gender?: string; brand?: string; price?: number; imageUrl?: string; isActive?: boolean; categoryId: number }) {
+  create(data: { name: string; description?: string; gender?: string; brand?: string; price?: number; stock?: number; imageUrl?: string; isActive?: boolean; categoryId: number }) {
     return this.prisma.product.create({
       data,
     });

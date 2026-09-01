@@ -57,6 +57,7 @@ function ProductsContent() {
       gender: row.gender || '', 
       brand: row.brand || '', 
       price: row.price || 0,
+      stock: row.stock || 0,
       categoryId: row.categoryId?.toString() || '',
       imageUrl: row.imageUrl || ''
     });
@@ -86,6 +87,11 @@ function ProductsContent() {
     { key: 'category', header: 'Categoría', render: (row) => row.category?.name || '-' },
     { key: 'brand', header: 'Marca', render: (row) => row.brand || '-' },
     { key: 'price', header: 'Precio', render: (row) => `$${row.price}` },
+    { key: 'stock', header: 'Stock', render: (row) => (
+      <span className={row.stock > 0 ? 'text-slate-900 dark:text-slate-100 font-medium' : 'text-red-500 font-bold'}>
+        {row.stock}
+      </span>
+    )},
     { key: 'isActive', header: 'Estado', render: (row) => (
       <Badge variant="outline" className={row.isActive ? "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-50 border-green-200" : "bg-red-50 text-red-700 border-red-200"}>
         {row.isActive ? 'Activo' : 'Inactivo'}
@@ -97,8 +103,9 @@ function ProductsContent() {
         variant="default"
         className="w-full sm:w-auto"
         onClick={() => addToCart({ productId: row.id, name: row.name, price: row.price, quantity: 1, imageUrl: row.imageUrl })}
+        disabled={row.stock <= 0}
       >
-        Añadir al carrito
+        {row.stock > 0 ? 'Añadir al carrito' : 'Agotado'}
       </Button>
     )},
   ];

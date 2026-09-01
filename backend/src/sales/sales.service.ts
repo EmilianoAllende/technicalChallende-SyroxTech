@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
 
@@ -13,23 +13,43 @@ export class SalesService {
     
     const total = data.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-    return this.prisma.sale.create({
-      data: {
-        clientName: data.clientName,
-        clientEmail: data.clientEmail,
-        userId: data.userId || null,
-        orderNumber,
-        status,
-        total,
-        paymentStatus,
-        items: {
-          create: data.items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          })),
+    // Prisma Transaction for stock check and update
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Verify stock for each item
+      for (const item of data.items) {
+        const product = await tx.product.findUnique({ where: { id: item.productId } });
+        if (!product || product.stock < item.quantity) {
+          throw new BadRequestException(`Stock insuficiente para el producto ID ${item.productId}`);
+        }
+      }
+
+      // 2. Decrement stock
+      for (const item of data.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } }
+        });
+      }
+
+      // 3. Create the sale
+      return tx.sale.create({
+        data: {
+          clientName: data.clientName,
+          clientEmail: data.clientEmail,
+          userId: data.userId || null,
+          orderNumber,
+          status,
+          total,
+          paymentStatus,
+          items: {
+            create: data.items.map(item => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          },
         },
-      },
+      });
     });
   }
 
