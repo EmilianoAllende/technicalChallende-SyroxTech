@@ -29,7 +29,7 @@ export class PaymentsService {
       // Como no habrá webhook de Stripe real, actualizamos el estado aquí mismo:
       await this.prisma.sale.update({
         where: { id: saleId },
-        data: { paymentStatus: 'Pagado', status: 'Pagado' }
+        data: { paymentStatus: 'Pagado' }
       });
       return { url: `${frontendUrl}/cart?success=true&sale_id=${saleId}` };
     }
@@ -86,7 +86,7 @@ export class PaymentsService {
       
       await this.prisma.sale.update({
         where: { id: saleId },
-        data: { paymentStatus: 'Pagado', status: 'Pagado' }
+        data: { paymentStatus: 'Pagado' }
       });
     }
 
@@ -102,7 +102,7 @@ export class PaymentsService {
     if (!process.env.MP_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN === 'TEST-dummy-token') {
       await this.prisma.sale.update({
         where: { id: saleId },
-        data: { paymentStatus: 'Pagado', status: 'Pagado' }
+        data: { paymentStatus: 'Pagado' }
       });
       return { url: `${frontendUrl}/cart?success=true&sale_id=${saleId}` };
     }
@@ -154,7 +154,7 @@ export class PaymentsService {
           
           await this.prisma.sale.update({
             where: { id: saleId },
-            data: { paymentStatus: 'Pagado', status: 'Pagado' }
+            data: { paymentStatus: 'Pagado' }
           });
         }
       } catch (error) {

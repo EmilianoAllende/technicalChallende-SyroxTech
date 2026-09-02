@@ -8,15 +8,16 @@ import { Suspense } from 'react';
 
 // Colores modernos para el gráfico de dinero
 const COLORS = {
-  Pagado: '#10b981',     // Emerald 500
-  Pendiente: '#f59e0b',  // Amber 500
-  Rechazado: '#ef4444',  // Red 500
-  Cancelado: '#64748b',  // Slate 500
-  Desconocido: '#94a3b8' // Slate 400
+  Pagado: '#22c55e',     // green-500
+  Pendiente: '#eab308',  // yellow-500
+  Rechazado: '#ef4444',  // red-500
+  Cancelado: '#ef4444',  // red-500
+  Desconocido: '#94a3b8' // slate-400
 };
 
 function StatsContent() {
   const [data, setData] = useState<any[]>([]);
+  const [logisticsData, setLogisticsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -38,8 +39,12 @@ function StatsContent() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/sales/stats/money');
-      setData(res.data);
+      const [moneyRes, logisticsRes] = await Promise.all([
+        api.get('/sales/stats/money'),
+        api.get('/sales/stats/logistics')
+      ]);
+      setData(moneyRes.data);
+      setLogisticsData(logisticsRes.data);
     } catch (error) {
       console.error('Error fetching stats', error);
     } finally {
@@ -122,11 +127,47 @@ function StatsContent() {
           </div>
         </div>
 
-        {/* Espacio reservado para el futuro gráfico de productos físicos */}
-        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden opacity-50 flex items-center justify-center relative">
-          <div className="absolute inset-0 bg-slate-100/50 dark:bg-slate-900/50 z-10 flex flex-col items-center justify-center">
-             <p className="text-lg font-medium text-slate-500">Próximamente</p>
-             <p className="text-sm text-slate-400">Gráfico de logística y productos físicos</p>
+        {/* Gráfico de Distribución Logística */}
+        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Logística y Entregas</h2>
+            <p className="text-sm text-muted-foreground">Distribución de órdenes por estado físico.</p>
+          </div>
+          <div className="p-6 h-[400px]">
+            {logisticsData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={logisticsData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={120}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {logisticsData.map((entry, index) => {
+                      // Colores para logística idénticos a los de Ventas
+                      const logColor = entry.name === 'Completado' ? '#22c55e' // green-500
+                                      : entry.name === 'Enviado' ? '#3b82f6' // blue-500
+                                      : entry.name === 'En Preparación' ? '#f97316' // orange-500
+                                      : entry.name === 'Cancelado' ? '#ef4444' // red-500
+                                      : '#94a3b8'; // slate-400
+                      return <Cell key={`cell-log-${index}`} fill={logColor} />;
+                    })}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: any) => [`${value} orden(es)`, 'Cantidad']}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                No hay datos logísticos disponibles.
+              </div>
+            )}
           </div>
         </div>
 

@@ -50,6 +50,11 @@ export class SalesController {
     return this.salesService.getStats();
   }
 
+  @Get('stats/logistics')
+  getLogisticsStats() {
+    return this.salesService.getLogisticsStats();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.salesService.findOne(+id);

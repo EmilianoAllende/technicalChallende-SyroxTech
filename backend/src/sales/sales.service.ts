@@ -105,4 +105,29 @@ export class SalesService {
       value: grouped[key]
     }));
   }
+
+  async getLogisticsStats() {
+    const sales = await this.prisma.sale.findMany({
+      select: {
+        total: true,
+        status: true
+      }
+    });
+
+    const grouped = sales.reduce((acc, sale) => {
+      const st = sale.status || 'Desconocido';
+      if (!acc[st]) acc[st] = 0;
+      // Podemos contar cantidad de órdenes o cantidad de dinero. 
+      // Generalmente para logística tiene más sentido contar la CANTIDAD de pedidos, pero si queremos ser consistentes, sumamos el total o sumamos 1.
+      // Usaremos cantidad de órdenes (1 por venta) para la logística, o total? 
+      // "movimientos de productos físicos" => quantity of items or orders. Let's do orders count for logistics.
+      acc[st] += 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.keys(grouped).map(key => ({
+      name: key,
+      value: grouped[key]
+    }));
+  }
 }

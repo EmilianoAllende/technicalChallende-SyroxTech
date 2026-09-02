@@ -18,6 +18,8 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
   - **Control de Stock Atómico:** Validación estricta del inventario mediante transacciones de base de datos (`$transaction`). Impide ventas fantasma reservando el stock exacto en milisegundos.
   - Registro de ventas detallado, conectando a los usuarios con las ventas y guardando cada artículo vendido mediante el modelo `SaleItem`.
   - Visualización del listado completo de pedidos, órdenes e ingresos generados.
+  - **Edición Manual de Ventas:** Los administradores pueden abrir el detalle de cualquier orden y actualizar manualmente los estados financieros (Pendiente, Pagado, Rechazado) y los logísticos (En Preparación, Enviado, Completado).
+  - **Panel de Estadísticas (Dashboard):** Vista gráfica en tiempo real (con librería *Recharts*) para monitorear el flujo de dinero, ingresos netos y la distribución física de la logística.
 
 - **Sistema de Autenticación y Control de Acceso Basado en Roles (RBAC):**
   - Cuentas de usuario protegidas por encriptación fuerte (`bcrypt`).
