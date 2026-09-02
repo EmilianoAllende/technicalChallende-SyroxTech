@@ -31,7 +31,7 @@ export default function SalesPage() {
       try {
         const user = JSON.parse(userStr);
         setUserRole(user.role);
-      } catch (e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -67,8 +67,8 @@ export default function SalesPage() {
   };
 
   const columns: ColumnDef<any>[] = [
-    { 
-      key: 'client', 
+    {
+      key: 'client',
       header: 'Cliente',
       render: (row) => (
         <div className="flex items-center space-x-3">
@@ -84,29 +84,33 @@ export default function SalesPage() {
     },
     { key: 'orderNumber', header: 'Número de Orden', render: (row) => <span className="font-mono text-sm">{row.orderNumber}</span> },
     { key: 'total', header: 'Total', render: (row) => <span className="font-medium">${row.total.toFixed(2)}</span> },
-    { key: 'paymentStatus', header: 'Pago', render: (row) => (
-      <Badge className={
-        row.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 
-        row.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' : 
-        row.paymentStatus === 'Cancelado' ? 'bg-orange-100 text-orange-800' :
-        'bg-yellow-100 text-yellow-800'
-      }>
-        {row.paymentStatus}
-      </Badge>
-    )},
-    { key: 'status', header: 'Logística', render: (row) => {
-      let badgeClass = 'bg-slate-100 text-slate-800';
-      if (row.status === 'Completado') badgeClass = 'bg-green-50 text-green-700';
-      else if (row.status === 'Enviado') badgeClass = 'bg-blue-50 text-blue-700';
-      else if (row.status === 'En Preparación') badgeClass = 'bg-orange-50 text-orange-700';
-      else if (row.status === 'Cancelado') badgeClass = 'bg-orange-50 text-orange-700';
-
-      return (
-        <Badge variant="secondary" className={badgeClass}>
-          {row.status}
+    {
+      key: 'paymentStatus', header: 'Pago', render: (row) => (
+        <Badge className={
+          row.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' :
+            row.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' :
+              row.paymentStatus === 'Cancelado' ? 'bg-orange-100 text-orange-800' :
+                'bg-yellow-100 text-yellow-800'
+        }>
+          {row.paymentStatus}
         </Badge>
-      );
-    }},
+      )
+    },
+    {
+      key: 'status', header: 'Logística', render: (row) => {
+        let badgeClass = 'bg-slate-100 text-slate-800';
+        if (row.status === 'Completado') badgeClass = 'bg-green-50 text-green-700';
+        else if (row.status === 'Enviado') badgeClass = 'bg-blue-50 text-blue-700';
+        else if (row.status === 'En Preparación') badgeClass = 'bg-orange-50 text-orange-700';
+        else if (row.status === 'Cancelado') badgeClass = 'bg-red-50 text-red-700';
+
+        return (
+          <Badge variant="secondary" className={badgeClass}>
+            {row.status}
+          </Badge>
+        );
+      }
+    },
   ];
 
   const canEdit = userRole === 'ADMIN' || userRole === 'SUPERADMIN';
@@ -121,9 +125,9 @@ export default function SalesPage() {
         <div className="mb-4 max-w-md">
           <Input placeholder="Buscar por nombre o número de orden..." />
         </div>
-        <GenericTable 
-          columns={columns} 
-          data={sales} 
+        <GenericTable
+          columns={columns}
+          data={sales}
           onView={handleView}
           onEdit={handleView}
         />
@@ -136,12 +140,12 @@ export default function SalesPage() {
               Gestionar Orden <span className="text-slate-500 font-normal">#{selectedSale?.orderNumber}</span>
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedSale && (
             <div className="space-y-6 pt-4">
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                
+
                 {/* Bloque Financiero */}
                 <div className="border border-slate-200 rounded-xl p-5 shadow-sm bg-slate-50">
                   <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
@@ -155,22 +159,22 @@ export default function SalesPage() {
                     <div>
                       <p className="text-sm text-slate-500 mb-1">Estado del Pago</p>
                       {canEdit ? (
-                      <select 
-                        className="w-full border border-slate-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white text-slate-900 dark:bg-slate-800 dark:text-white dark:border-slate-700"
-                        value={selectedSale.paymentStatus}
-                        onChange={(e) => setSelectedSale({...selectedSale, paymentStatus: e.target.value})}
-                      >
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Pagado">Pagado</option>
-                        <option value="Rechazado">Rechazado</option>
-                        <option value="Cancelado">Cancelado</option>
-                      </select>
+                        <select
+                          className="w-full border border-slate-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white text-slate-900 dark:bg-slate-800 dark:text-white dark:border-slate-700"
+                          value={selectedSale.paymentStatus}
+                          onChange={(e) => setSelectedSale({ ...selectedSale, paymentStatus: e.target.value })}
+                        >
+                          <option value="Pendiente">Pendiente</option>
+                          <option value="Pagado">Pagado</option>
+                          <option value="Rechazado">Rechazado</option>
+                          <option value="Cancelado">Cancelado</option>
+                        </select>
                       ) : (
                         <Badge className={
-                          selectedSale.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 
-                          selectedSale.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' : 
-                          selectedSale.paymentStatus === 'Cancelado' ? 'bg-orange-100 text-orange-800' :
-                          'bg-yellow-100 text-yellow-800'
+                          selectedSale.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' :
+                            selectedSale.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' :
+                              selectedSale.paymentStatus === 'Cancelado' ? 'bg-orange-100 text-orange-800' :
+                                'bg-yellow-100 text-yellow-800'
                         }>
                           {selectedSale.paymentStatus}
                         </Badge>
@@ -193,23 +197,23 @@ export default function SalesPage() {
                     <div>
                       <p className="text-sm text-slate-500 mb-1">Estado de Preparación</p>
                       {canEdit ? (
-                      <select 
-                        className="w-full border border-slate-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white text-slate-900 dark:bg-slate-800 dark:text-white dark:border-slate-700"
-                        value={selectedSale.status}
-                        onChange={(e) => setSelectedSale({...selectedSale, status: e.target.value})}
-                      >
-                        <option value="En Preparación">En Preparación</option>
-                        <option value="Enviado">Enviado</option>
-                        <option value="Completado">Completado</option>
-                        <option value="Cancelado">Cancelado</option>
-                      </select>
+                        <select
+                          className="w-full border border-slate-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white text-slate-900 dark:bg-slate-800 dark:text-white dark:border-slate-700"
+                          value={selectedSale.status}
+                          onChange={(e) => setSelectedSale({ ...selectedSale, status: e.target.value })}
+                        >
+                          <option value="En Preparación">En Preparación</option>
+                          <option value="Enviado">Enviado</option>
+                          <option value="Completado">Completado</option>
+                          <option value="Cancelado">Cancelado</option>
+                        </select>
                       ) : (
                         <Badge variant="secondary" className={
                           selectedSale.status === 'Completado' ? 'bg-green-50 text-green-700' :
-                          selectedSale.status === 'Enviado' ? 'bg-blue-50 text-blue-700' :
-                          selectedSale.status === 'En Preparación' ? 'bg-orange-50 text-orange-700' :
-                          selectedSale.status === 'Cancelado' ? 'bg-orange-50 text-orange-700' :
-                          'bg-slate-100 text-slate-800'
+                            selectedSale.status === 'Enviado' ? 'bg-blue-50 text-blue-700' :
+                              selectedSale.status === 'En Preparación' ? 'bg-orange-50 text-orange-700' :
+                                selectedSale.status === 'Cancelado' ? 'bg-orange-50 text-orange-700' :
+                                  'bg-slate-100 text-slate-800'
                         }>
                           {selectedSale.status}
                         </Badge>
