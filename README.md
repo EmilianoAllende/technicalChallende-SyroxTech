@@ -15,6 +15,7 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
   - **Productos:** Gestión de artículos del inventario con atributos expandidos como nombre, precio, marca, género e integración de **imágenes por URL**, ofreciendo una experiencia premium en el catálogo y carrito.
 
 - **Gestión de Ventas e Inventario:**
+  - **Control de Stock Atómico:** Validación estricta del inventario mediante transacciones de base de datos (`$transaction`). Impide ventas fantasma reservando el stock exacto en milisegundos.
   - Registro de ventas detallado, conectando a los usuarios con las ventas y guardando cada artículo vendido mediante el modelo `SaleItem`.
   - Visualización del listado completo de pedidos, órdenes e ingresos generados.
 
@@ -26,8 +27,9 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
   - Diferenciación de accesos en la interfaz:
     - **Visitantes (Guest) / `USER`**: Solo acceden al catálogo público, a su carrito de compras y a su historial de ventas personal.
     - **`ADMIN` y `SUPERADMIN`**: Acceden a la vista de "Estadísticas" y a la gestión del inventario global y todas las ventas.
+  - **Gestión de Perfil de Usuario (Cuenta):** Panel dedicado donde cada usuario administra su información personal (Nombres, Fecha de Nacimiento, Avatar y Nombre de Usuario dinámico).
   - Panel exclusivo de administración de credenciales y cuentas de usuario para el `SUPERADMIN`, con poder para crear nuevos súper-usuarios. Además, cuenta con un bloqueo de seguridad que impide que el superadministrador activo degrade su propio rol por accidente.
-  - Mecanismo seguro de auto-eliminación de cuentas, protegido con retrasos modales para prevención de accidentes.
+  - Mecanismo seguro de auto-eliminación de cuentas ubicado en la "Zona de Peligro" de la sección de Cuenta, protegido con retrasos modales para prevención de accidentes.
 
 - **Integración de Pagos (Stripe y MercadoPago):**
   - Implementación de Checkout Sessions (Stripe) y Checkout Pro (MercadoPago) para múltiples métodos de pago seguros.
