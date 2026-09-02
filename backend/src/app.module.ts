@@ -9,9 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PaymentsModule } from './payments/payments.module';
 import { EmailModule } from './email/email.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
-  imports: [PrismaModule, CategoriesModule, ProductsModule, SalesModule, AuthModule, UsersModule, PaymentsModule, EmailModule],
+  imports: [PrismaModule, CategoriesModule, ProductsModule, SalesModule, AuthModule, UsersModule, PaymentsModule, EmailModule, ReviewsModule],
   controllers: [AppController],
   providers: [AppService],
 })

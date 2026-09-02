@@ -2,13 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { Package } from 'lucide-react';
+import { Package, Star, StarHalf } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 
 export default function MyPurchasesPage() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  
+  // Review State
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -20,9 +31,13 @@ export default function MyPurchasesPage() {
     
     const fetchPurchases = async () => {
       try {
-        const user = JSON.parse(userStr);
-        const res = await api.get(`/sales/my-purchases?userId=${user.id}`);
-        setPurchases(res.data);
+        const parsedUser = JSON.parse(userStr);
+        setUser(parsedUser);
+        const res = await api.get(`/sales/my-purchases?userId=${parsedUser.id}`);
+        
+        // Cargar cuáles productos ya tienen reseña para este usuario
+        const salesData = res.data;
+        setPurchases(salesData);
       } catch (error) {
         console.error(error);
       } finally {
@@ -32,6 +47,32 @@ export default function MyPurchasesPage() {
 
     fetchPurchases();
   }, [router]);
+
+  const openReviewModal = (product: any) => {
+    setSelectedProduct(product);
+    setRating(5);
+    setComment('');
+    setIsReviewOpen(true);
+  };
+
+  const submitReview = async () => {
+    if (!user || !selectedProduct) return;
+    setIsSubmitting(true);
+    try {
+      await api.post('/reviews', {
+        userId: user.id,
+        productId: selectedProduct.id,
+        rating,
+        comment
+      });
+      alert('¡Gracias por tu reseña!');
+      setIsReviewOpen(false);
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error al enviar la reseña');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Cargando tus compras...</div>;
@@ -79,8 +120,15 @@ export default function MyPurchasesPage() {
                     <h4 className="font-medium text-foreground">{item.product?.name || 'Producto Desconocido'}</h4>
                     <p className="text-sm text-muted-foreground mt-1">Cantidad: {item.quantity}</p>
                   </div>
-                  <div className="font-medium">
-                    ${(item.price * item.quantity).toFixed(2)}
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="font-medium">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </span>
+                    {sale.status === 'Completado' && (
+                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => openReviewModal(item.product)}>
+                        <Star className="w-3 h-3 mr-1" /> Calificar
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -88,6 +136,52 @@ export default function MyPurchasesPage() {
           </div>
         ))}
       </div>
+
+      <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dejar Reseña</DialogTitle>
+          </DialogHeader>
+          {selectedProduct && (
+            <div className="space-y-4 pt-4">
+              <p className="font-medium text-slate-800">{selectedProduct.name}</p>
+              
+              <div>
+                <p className="text-sm text-slate-500 mb-2">Calificación</p>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        className={`w-8 h-8 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500 mb-2">Comentario (Opcional)</p>
+                <textarea
+                  className="w-full border border-slate-300 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]"
+                  placeholder="¿Qué te pareció el producto?"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={submitReview} disabled={isSubmitting}>
+                  {isSubmitting ? 'Enviando...' : 'Enviar Reseña'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
