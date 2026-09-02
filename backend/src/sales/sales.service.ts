@@ -79,6 +79,9 @@ export class SalesService {
   }
 
   async updateStatus(id: number, status?: string, paymentStatus?: string) {
+    const saleBefore = await this.prisma.sale.findUnique({ where: { id } });
+    if (!saleBefore) throw new BadRequestException('Orden no encontrada');
+
     const data: any = {};
     if (status) data.status = status;
     if (paymentStatus) data.paymentStatus = paymentStatus;
@@ -88,8 +91,12 @@ export class SalesService {
       data
     });
 
-    if (status === 'Enviado') {
+    if (status === 'Enviado' && saleBefore.status !== 'Enviado') {
       await this.emailService.sendShippingNotification(sale.clientEmail, sale.clientName, sale.orderNumber);
+    }
+
+    if (paymentStatus === 'Pagado' && saleBefore.paymentStatus !== 'Pagado') {
+      await this.emailService.sendPurchaseConfirmation(sale.clientEmail, sale.orderNumber, sale.total);
     }
 
     return sale;
