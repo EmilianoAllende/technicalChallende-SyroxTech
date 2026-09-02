@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, Patch } from '@nestjs/common';
 import { SalesService } from './sales.service';
 
 import { PaymentsService } from '../payments/payments.service';
@@ -45,8 +45,21 @@ export class SalesController {
     return this.salesService.findAll();
   }
 
+  @Get('stats/money')
+  getStats() {
+    return this.salesService.getStats();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.salesService.findOne(+id);
+  }
+
+  @Patch(':id')
+  updateStatus(
+    @Param('id') id: string,
+    @Body() body: { status?: string; paymentStatus?: string }
+  ) {
+    return this.salesService.updateStatus(+id, body.status, body.paymentStatus);
   }
 }

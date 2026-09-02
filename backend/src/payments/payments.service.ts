@@ -37,7 +37,7 @@ export class PaymentsService {
 
     const lineItems = items.map(item => ({
       price_data: {
-        currency: 'ars',
+        currency: 'usd',
         product_data: {
           name: item.name || 'Producto genérico',
         },

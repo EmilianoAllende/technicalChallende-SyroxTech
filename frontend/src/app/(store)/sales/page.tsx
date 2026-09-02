@@ -12,6 +12,8 @@ export default function SalesPage() {
   const [sales, setSales] = useState<any[]>([]);
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchSales = async () => {
     try {
@@ -24,6 +26,13 @@ export default function SalesPage() {
 
   useEffect(() => {
     fetchSales();
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserRole(user.role);
+      } catch (e) {}
+    }
   }, []);
 
   const handleGenerateSale = async () => {
@@ -36,8 +45,25 @@ export default function SalesPage() {
   };
 
   const handleView = (row: any) => {
-    setSelectedSale(row);
+    setSelectedSale({ ...row });
     setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!selectedSale) return;
+    setIsSaving(true);
+    try {
+      await api.patch(`/sales/${selectedSale.id}`, {
+        status: selectedSale.status,
+        paymentStatus: selectedSale.paymentStatus
+      });
+      setIsModalOpen(false);
+      fetchSales();
+    } catch (error) {
+      alert('Error al guardar los cambios');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const columns: ColumnDef<any>[] = [
@@ -57,7 +83,7 @@ export default function SalesPage() {
       )
     },
     { key: 'orderNumber', header: 'Número de Orden', render: (row) => <span className="font-mono text-sm">{row.orderNumber}</span> },
-    { key: 'status', header: 'Estado', render: (row) => (
+    { key: 'status', header: 'Logística', render: (row) => (
       <Badge variant="secondary" className={
         row.status === 'Enviado' ? 'bg-blue-50 text-blue-700' :
         row.status === 'En Preparación' ? 'bg-orange-50 text-orange-700' :
@@ -68,19 +94,22 @@ export default function SalesPage() {
     )},
     { key: 'total', header: 'Total', render: (row) => <span className="font-medium">${row.total.toFixed(2)}</span> },
     { key: 'paymentStatus', header: 'Pago', render: (row) => (
-      <Badge className={row.paymentStatus === 'Pagado' ? 'bg-slate-900 text-white' : 'bg-red-600 text-white'}>
+      <Badge className={
+        row.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 
+        row.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' : 
+        'bg-yellow-100 text-yellow-800'
+      }>
         {row.paymentStatus}
       </Badge>
     )},
   ];
 
+  const canEdit = userRole === 'ADMIN' || userRole === 'SUPERADMIN';
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Ventas</h1>
-        <Button onClick={handleGenerateSale} className="bg-slate-900">
-          + Generar Venta
-        </Button>
       </div>
 
       <div className="bg-white p-4 rounded-xl shadow-sm border">
@@ -91,7 +120,7 @@ export default function SalesPage() {
           columns={columns} 
           data={sales} 
           onView={handleView}
-          onEdit={handleView} // Both open the same modal for this simple test
+          onEdit={handleView}
         />
       </div>
 
@@ -105,40 +134,87 @@ export default function SalesPage() {
           
           {selectedSale && (
             <div className="space-y-6 pt-4">
-              <div className="bg-slate-50 p-4 rounded-lg border flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-700">Estado Actual:</span>
-                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">{selectedSale.status}</Badge>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="border rounded-lg p-4">
-                  <h3 className="font-medium flex items-center gap-2 mb-4 border-b pb-2">Información del Cliente</h3>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="text-slate-500">Nombre:</span> {selectedSale.clientName}</p>
-                    <p><span className="text-slate-500">Email:</span> {selectedSale.clientEmail}</p>
-                  </div>
-                </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 
-                <div className="border rounded-lg p-4">
-                  <h3 className="font-medium flex items-center gap-2 mb-4 border-b pb-2">Información de Pago</h3>
-                  <div className="space-y-2 text-sm flex justify-between">
+                {/* Bloque Financiero */}
+                <div className="border border-slate-200 rounded-xl p-5 shadow-sm bg-slate-50">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    Información Financiera (Pago)
+                  </h3>
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-slate-500 mb-1">Total</p>
-                      <p className="text-lg font-bold">${selectedSale.total.toFixed(2)}</p>
+                      <p className="text-sm text-slate-500 mb-1">Monto Total</p>
+                      <p className="text-2xl font-bold text-slate-900">${selectedSale.total.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-slate-500 mb-1">Estado</p>
-                      <Badge className="bg-slate-900">{selectedSale.paymentStatus}</Badge>
+                      <p className="text-sm text-slate-500 mb-1">Estado del Pago</p>
+                      {canEdit ? (
+                        <select 
+                          className="w-full border border-slate-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                          value={selectedSale.paymentStatus}
+                          onChange={(e) => setSelectedSale({...selectedSale, paymentStatus: e.target.value})}
+                        >
+                          <option value="Pendiente">Pendiente</option>
+                          <option value="Pagado">Pagado</option>
+                          <option value="Rechazado">Rechazado</option>
+                          <option value="Cancelado">Cancelado</option>
+                        </select>
+                      ) : (
+                        <Badge className={
+                          selectedSale.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 
+                          selectedSale.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' : 
+                          'bg-yellow-100 text-yellow-800'
+                        }>
+                          {selectedSale.paymentStatus}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
+
+                {/* Bloque Operativo */}
+                <div className="border border-slate-200 rounded-xl p-5 shadow-sm bg-slate-50">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
+                    Logística y Productos
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-slate-500 mb-1">Cliente</p>
+                      <p className="font-medium text-slate-900">{selectedSale.clientName}</p>
+                      <p className="text-sm text-slate-500">{selectedSale.clientEmail}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 mb-1">Estado de Preparación</p>
+                      {canEdit ? (
+                        <select 
+                          className="w-full border border-slate-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                          value={selectedSale.status}
+                          onChange={(e) => setSelectedSale({...selectedSale, status: e.target.value})}
+                        >
+                          <option value="En Preparación">En Preparación</option>
+                          <option value="Enviado">Enviado</option>
+                          <option value="Completado">Completado</option>
+                          <option value="Cancelado">Cancelado</option>
+                        </select>
+                      ) : (
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                          {selectedSale.status}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
-              <div className="flex justify-end pt-4 border-t">
-                <Button className="bg-slate-900">Completar Pedido</Button>
-              </div>
+              {canEdit && (
+                <div className="flex justify-end pt-4 border-t border-slate-200">
+                  <Button onClick={handleSave} disabled={isSaving} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

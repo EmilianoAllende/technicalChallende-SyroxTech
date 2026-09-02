@@ -73,4 +73,36 @@ export class SalesService {
       include: { items: { include: { product: true } } }
     });
   }
+
+  updateStatus(id: number, status?: string, paymentStatus?: string) {
+    const data: any = {};
+    if (status) data.status = status;
+    if (paymentStatus) data.paymentStatus = paymentStatus;
+    
+    return this.prisma.sale.update({
+      where: { id },
+      data
+    });
+  }
+
+  async getStats() {
+    const sales = await this.prisma.sale.findMany({
+      select: {
+        total: true,
+        paymentStatus: true
+      }
+    });
+
+    const grouped = sales.reduce((acc, sale) => {
+      const ps = sale.paymentStatus || 'Desconocido';
+      if (!acc[ps]) acc[ps] = 0;
+      acc[ps] += sale.total;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.keys(grouped).map(key => ({
+      name: key,
+      value: grouped[key]
+    }));
+  }
 }
