@@ -116,9 +116,16 @@ export default function MyPurchasesPage() {
             <div className="p-6 divide-y divide-border">
               {sale.items?.map((item: any) => (
                 <div key={item.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-foreground">{item.product?.name || 'Producto Desconocido'}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Cantidad: {item.quantity}</p>
+                  <div className="flex items-center gap-4">
+                    {item.product?.imageUrl ? (
+                      <img src={item.product.imageUrl} alt={item.product.name} className="w-12 h-12 object-cover rounded-md border border-border" />
+                    ) : (
+                      <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center justify-center text-[10px] text-slate-400 border border-border">S/I</div>
+                    )}
+                    <div>
+                      <h4 className="font-medium text-foreground">{item.product?.name || 'Producto Desconocido'}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">Cantidad: {item.quantity}</p>
+                    </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span className="font-medium">
