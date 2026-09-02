@@ -11,7 +11,7 @@ const COLORS = {
   Pagado: '#22c55e',     // green-500
   Pendiente: '#eab308',  // yellow-500
   Rechazado: '#ef4444',  // red-500
-  Cancelado: '#ef4444',  // red-500
+  Cancelado: '#f97316',  // orange-500
   Desconocido: '#94a3b8' // slate-400
 };
 
@@ -151,7 +151,7 @@ function StatsContent() {
                       const logColor = entry.name === 'Completado' ? '#22c55e' // green-500
                                       : entry.name === 'Enviado' ? '#3b82f6' // blue-500
                                       : entry.name === 'En Preparación' ? '#f97316' // orange-500
-                                      : entry.name === 'Cancelado' ? '#ef4444' // red-500
+                                      : entry.name === 'Cancelado' ? '#f97316' // orange-500
                                       : '#94a3b8'; // slate-400
                       return <Cell key={`cell-log-${index}`} fill={logColor} />;
                     })}

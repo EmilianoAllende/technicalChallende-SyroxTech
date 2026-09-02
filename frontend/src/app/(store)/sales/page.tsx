@@ -83,12 +83,23 @@ export default function SalesPage() {
       )
     },
     { key: 'orderNumber', header: 'Número de Orden', render: (row) => <span className="font-mono text-sm">{row.orderNumber}</span> },
+    { key: 'total', header: 'Total', render: (row) => <span className="font-medium">${row.total.toFixed(2)}</span> },
+    { key: 'paymentStatus', header: 'Pago', render: (row) => (
+      <Badge className={
+        row.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 
+        row.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' : 
+        row.paymentStatus === 'Cancelado' ? 'bg-orange-100 text-orange-800' :
+        'bg-yellow-100 text-yellow-800'
+      }>
+        {row.paymentStatus}
+      </Badge>
+    )},
     { key: 'status', header: 'Logística', render: (row) => {
       let badgeClass = 'bg-slate-100 text-slate-800';
       if (row.status === 'Completado') badgeClass = 'bg-green-50 text-green-700';
       else if (row.status === 'Enviado') badgeClass = 'bg-blue-50 text-blue-700';
       else if (row.status === 'En Preparación') badgeClass = 'bg-orange-50 text-orange-700';
-      else if (row.status === 'Cancelado') badgeClass = 'bg-red-50 text-red-700';
+      else if (row.status === 'Cancelado') badgeClass = 'bg-orange-50 text-orange-700';
 
       return (
         <Badge variant="secondary" className={badgeClass}>
@@ -96,16 +107,6 @@ export default function SalesPage() {
         </Badge>
       );
     }},
-    { key: 'total', header: 'Total', render: (row) => <span className="font-medium">${row.total.toFixed(2)}</span> },
-    { key: 'paymentStatus', header: 'Pago', render: (row) => (
-      <Badge className={
-        row.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 
-        row.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' : 
-        'bg-yellow-100 text-yellow-800'
-      }>
-        {row.paymentStatus}
-      </Badge>
-    )},
   ];
 
   const canEdit = userRole === 'ADMIN' || userRole === 'SUPERADMIN';
@@ -168,6 +169,7 @@ export default function SalesPage() {
                         <Badge className={
                           selectedSale.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 
                           selectedSale.paymentStatus === 'Rechazado' ? 'bg-red-100 text-red-800' : 
+                          selectedSale.paymentStatus === 'Cancelado' ? 'bg-orange-100 text-orange-800' :
                           'bg-yellow-100 text-yellow-800'
                         }>
                           {selectedSale.paymentStatus}
@@ -206,7 +208,7 @@ export default function SalesPage() {
                           selectedSale.status === 'Completado' ? 'bg-green-50 text-green-700' :
                           selectedSale.status === 'Enviado' ? 'bg-blue-50 text-blue-700' :
                           selectedSale.status === 'En Preparación' ? 'bg-orange-50 text-orange-700' :
-                          selectedSale.status === 'Cancelado' ? 'bg-red-50 text-red-700' :
+                          selectedSale.status === 'Cancelado' ? 'bg-orange-50 text-orange-700' :
                           'bg-slate-100 text-slate-800'
                         }>
                           {selectedSale.status}
