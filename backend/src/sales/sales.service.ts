@@ -1,10 +1,14 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class SalesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async create(data: { clientName: string; clientEmail: string; userId?: number; items: { productId: number; quantity: number; price: number, name?: string }[] }) {
     const orderNumber = randomUUID().split('-')[0].toUpperCase();
@@ -74,15 +78,21 @@ export class SalesService {
     });
   }
 
-  updateStatus(id: number, status?: string, paymentStatus?: string) {
+  async updateStatus(id: number, status?: string, paymentStatus?: string) {
     const data: any = {};
     if (status) data.status = status;
     if (paymentStatus) data.paymentStatus = paymentStatus;
     
-    return this.prisma.sale.update({
+    const sale = await this.prisma.sale.update({
       where: { id },
       data
     });
+
+    if (status === 'Enviado') {
+      await this.emailService.sendShippingNotification(sale.clientEmail, sale.clientName, sale.orderNumber);
+    }
+
+    return sale;
   }
 
   async getStats() {

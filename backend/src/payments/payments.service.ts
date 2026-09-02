@@ -2,13 +2,17 @@ import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
   private mpClient: MercadoPagoConfig;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
       apiVersion: '2026-08-26.dahlia',
     });
@@ -27,10 +31,11 @@ export class PaymentsService {
     // y devolvemos directamente la URL de éxito para probar el flujo del frontend.
     if (secretKey === 'sk_test_123' || secretKey === 'sk_test_mock') {
       // Como no habrá webhook de Stripe real, actualizamos el estado aquí mismo:
-      await this.prisma.sale.update({
+      const sale = await this.prisma.sale.update({
         where: { id: saleId },
         data: { paymentStatus: 'Pagado' }
       });
+      await this.emailService.sendPurchaseConfirmation(sale.clientEmail, sale.orderNumber, sale.total);
       return { url: `${frontendUrl}/cart?success=true&sale_id=${saleId}` };
     }
     // =======================
@@ -84,10 +89,11 @@ export class PaymentsService {
       const session = event.data.object;
       const saleId = parseInt(session.metadata.saleId, 10);
       
-      await this.prisma.sale.update({
+      const sale = await this.prisma.sale.update({
         where: { id: saleId },
         data: { paymentStatus: 'Pagado' }
       });
+      await this.emailService.sendPurchaseConfirmation(sale.clientEmail, sale.orderNumber, sale.total);
     }
 
     return { received: true };
@@ -100,10 +106,11 @@ export class PaymentsService {
     // === MODO SIMULACIÓN ===
     // Si no hay token real provisto, devolvemos URL de éxito directa
     if (!process.env.MP_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN === 'TEST-dummy-token') {
-      await this.prisma.sale.update({
+      const sale = await this.prisma.sale.update({
         where: { id: saleId },
         data: { paymentStatus: 'Pagado' }
       });
+      await this.emailService.sendPurchaseConfirmation(sale.clientEmail, sale.orderNumber, sale.total);
       return { url: `${frontendUrl}/cart?success=true&sale_id=${saleId}` };
     }
     // =======================
@@ -152,10 +159,11 @@ export class PaymentsService {
         if (paymentData.status === 'approved' && paymentData.external_reference) {
           const saleId = parseInt(paymentData.external_reference, 10);
           
-          await this.prisma.sale.update({
+          const sale = await this.prisma.sale.update({
             where: { id: saleId },
             data: { paymentStatus: 'Pagado' }
           });
+          await this.emailService.sendPurchaseConfirmation(sale.clientEmail, sale.orderNumber, sale.total);
         }
       } catch (error) {
         console.error('Error handling MP Webhook:', error);
