@@ -37,10 +37,35 @@ export default function SalesPage() {
 
   const handleGenerateSale = async () => {
     try {
-      await api.post('/sales');
+      setIsSaving(true);
+      // Fetchear un producto para la venta de prueba
+      const prodRes = await api.get('/products');
+      const products = prodRes.data;
+      if (products.length === 0) {
+        alert('Crea al menos un producto primero para generar una venta.');
+        return;
+      }
+      
+      const product = products[0];
+      
+      await api.post('/sales', {
+        clientName: 'Cliente de Prueba',
+        clientEmail: 'prueba@syroxtech.com',
+        paymentMethod: 'stripe',
+        items: [{
+          productId: product.id,
+          quantity: 1,
+          price: product.price,
+          name: product.name
+        }]
+      });
       fetchSales();
+      alert('Venta de prueba generada con éxito');
     } catch (error) {
       console.error(error);
+      alert('Error al generar la venta');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -119,6 +144,11 @@ export default function SalesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Ventas</h1>
+        {canEdit && (
+          <Button onClick={handleGenerateSale} disabled={isSaving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            + Generar Venta
+          </Button>
+        )}
       </div>
 
       <div className="bg-white p-4 rounded-xl shadow-sm border">

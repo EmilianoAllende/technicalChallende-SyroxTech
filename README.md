@@ -20,6 +20,7 @@ ASTRA es una plataforma de comercio electrónico dinámica y moderna con una int
   - Visualización del listado completo de pedidos, órdenes e ingresos generados.
   - **Edición Manual de Ventas:** Los administradores pueden abrir el detalle de cualquier orden y actualizar manualmente los estados financieros (Pendiente, Pagado, Rechazado) y los logísticos (En Preparación, Enviado, Completado).
   - **Panel de Estadísticas (Dashboard):** Vista gráfica en tiempo real (con librería *Recharts*) para monitorear el flujo de dinero, ingresos netos y la distribución física de la logística.
+  - **Feature Flags (Configuración Dinámica):** La plataforma permite encender o apagar sistemas complejos mediante variables de entorno (`ENABLE_STOCK_MANAGEMENT`, `ENABLE_PAYMENT_GATEWAYS`). Si se configuran en `false`, el sistema se comporta como un CRUD puro simplificado, adaptándose a los requerimientos base de pruebas técnicas sin sacrificar escalabilidad.
 
 - **Sistema de Autenticación y Control de Acceso Basado en Roles (RBAC):**
   - Cuentas de usuario protegidas por encriptación fuerte (`bcrypt`).

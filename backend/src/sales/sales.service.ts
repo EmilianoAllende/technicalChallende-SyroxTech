@@ -17,22 +17,26 @@ export class SalesService {
     
     const total = data.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-    // Prisma Transaction for stock check and update
+    // Prisma Transaction for stock check and update (if enabled)
     return this.prisma.$transaction(async (tx) => {
-      // 1. Verify stock for each item
-      for (const item of data.items) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } });
-        if (!product || product.stock < item.quantity) {
-          throw new BadRequestException(`Stock insuficiente para el producto ID ${item.productId}`);
-        }
-      }
+      const isStockEnabled = process.env.ENABLE_STOCK_MANAGEMENT !== 'false';
 
-      // 2. Decrement stock
-      for (const item of data.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } }
-        });
+      if (isStockEnabled) {
+        // 1. Verify stock for each item
+        for (const item of data.items) {
+          const product = await tx.product.findUnique({ where: { id: item.productId } });
+          if (!product || product.stock < item.quantity) {
+            throw new BadRequestException(`Stock insuficiente para el producto ID ${item.productId}`);
+          }
+        }
+
+        // 2. Decrement stock
+        for (const item of data.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } }
+          });
+        }
       }
 
       // 3. Create the sale

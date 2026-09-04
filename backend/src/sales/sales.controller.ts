@@ -15,6 +15,13 @@ export class SalesController {
     // 1. Crear la venta en la DB (Pendiente)
     const sale = await this.salesService.create(data);
     
+    // Si los pagos están deshabilitados, retornar sin URL
+    if (process.env.ENABLE_PAYMENT_GATEWAYS === 'false') {
+      // Automáticamente marcar como pagado para simular la compra directa
+      const updatedSale = await this.salesService.updateStatus(sale.id, undefined, 'Pagado');
+      return { sale: updatedSale, url: null };
+    }
+
     // 2. Generar sesión de pago
     let session;
     if (data.paymentMethod === 'mercadopago') {
